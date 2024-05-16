@@ -10,7 +10,7 @@ torchvision
 torchaudio
 transformers
 timm==0.4.12
-openai
+openai==0.28.1
 diffusers[torch]
 setuptools==59.5.0
 openmim
@@ -22,7 +22,7 @@ boto3
 jsonschema
 entrypoints
 nltk
-langchain
+langchain==0.0.123
 openai-whisper
 gradio
 unstructured

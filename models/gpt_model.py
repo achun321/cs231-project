@@ -19,7 +19,7 @@ CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
 
 qa_template = """You are an AI assistant designed for answering questions about a video.
 You are given a document and a question, the document records what people see and hear from this video.
-Try to connet these information and provide a conversational answer.
+Try to connect these information and provide a conversational answer.
 Question: {question}
 =========
 {context}
@@ -43,14 +43,14 @@ class LlmReasoner():
         pkl_path = os.path.join(self.tmp_dir, f"{video_id}.pkl")
         log_path = os.path.join(self.data_dir, f"{video_id}.log")
         if os.path.exists(pkl_path) and os.path.exists(log_path):
-            with open(pkl_path, 'rb') as file:
-                self.vectorstore = pickle.load(file)
-                
+            self.vectorstore = FAISS.load_local(pkl_path, OpenAIEmbeddings())
+            # with open(pkl_path, 'rb') as file:
+            #     self.vectorstore = pickle.load(file)
             self.qa_chain = ChatVectorDBChain.from_llm(
-            self.llm,
-            self.vectorstore,
-            qa_prompt=QA_PROMPT,
-            condense_question_prompt=CONDENSE_QUESTION_PROMPT,
+                self.llm,
+                self.vectorstore,
+                qa_prompt=QA_PROMPT,
+                condense_question_prompt=CONDENSE_QUESTION_PROMPT,
             )
             self.qa_chain.top_k_docs_for_context = self.top_k
             return True
@@ -72,21 +72,21 @@ class LlmReasoner():
             vectorstore = FAISS.from_documents(documents, embeddings)
         
             # Save vectorstore
-            with open(pkl_path, "wb") as f:
-                pickle.dump(vectorstore, f)
+            vectorstore.save_local(pkl_path)
+            # with open(pkl_path, "wb") as f:
+            #     pickle.dump(vectorstore, f)
         
-        
-        with open(pkl_path, 'rb') as file:
-            self.vectorstore = pickle.load(file)
+        self.vectorstore = FAISS.load_local(pkl_path, OpenAIEmbeddings())
+        # with open(pkl_path, 'rb') as file:
+        #     self.vectorstore = pickle.load(file)
         
         self.qa_chain = ChatVectorDBChain.from_llm(
-            self.llm,
-            self.vectorstore,
-            qa_prompt=QA_PROMPT,
-            condense_question_prompt=CONDENSE_QUESTION_PROMPT,
-        )
+                self.llm,
+                self.vectorstore,
+                qa_prompt=QA_PROMPT,
+                condense_question_prompt=CONDENSE_QUESTION_PROMPT,
+            )
         self.qa_chain.top_k_docs_for_context = self.top_k
-
         return 
 
     def __call__(self, question):
