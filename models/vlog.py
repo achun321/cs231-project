@@ -36,7 +36,7 @@ class Vlogger :
         self.video_segmenter = VideoSegmentor(alpha=self.alpha, beta=self.beta)
         self.image_captioner = ImageCaptioner(model_name=self.args.captioner_base_model, device=self.args.image_captioner_device)
         self.dense_captioner = DenseCaptioner(device=self.args.dense_captioner_device)
-        self.audio_translator = AudioTranslator(model=self.args.audio_translator, device=self.args.audio_translator_device)
+        # self.audio_translator = AudioTranslator(model=self.args.audio_translator, device=self.args.audio_translator_device)
         print('\033[1;32m' + "Model initialization finished!".center(50, '-') + '\033[0m')
     
     def init_llm(self):
@@ -66,7 +66,7 @@ class Vlogger :
         
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
-        audio_results = self.audio_translator(video_path)
+        # audio_results = self.audio_translator(video_path)
 
         for start_sec, end_sec in seg_windows:
             middle_sec = (start_sec + end_sec) // 2
@@ -78,15 +78,15 @@ class Vlogger :
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 image_caption = self.image_captioner.image_caption(frame)
                 dense_caption = self.dense_captioner.image_dense_caption(frame)
-                audio_transcript = self.audio_translator.match(audio_results, start_sec, end_sec)
+                # audio_transcript = self.audio_translator.match(audio_results, start_sec, end_sec)
                     
                 logger.info(f"When {format_time(start_sec)} - {format_time(end_sec)}")
                 logger.info(f"I saw {image_caption}.")
                 logger.info(f"I found {dense_caption}.")
                     
-                if len(audio_transcript) > 0:
-                    logger.info(f"I heard someone say \"{audio_transcript}\"")
-                logger.info("\n")
+                # if len(audio_transcript) > 0:
+                #     logger.info(f"I heard someone say \"{audio_transcript}\"")
+                # logger.info("\n")
         
         cap.release()
         self.llm_reasoner.create_vectorstore(video_id)
