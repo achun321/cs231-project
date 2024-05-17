@@ -1,6 +1,7 @@
 import os 
 import pdb
 import pickle
+import re
 from langchain.llms import OpenAI
 from langchain.vectorstores.faiss import FAISS
 from langchain.chains import ChatVectorDBChain
@@ -8,6 +9,7 @@ from langchain.prompts.prompt import PromptTemplate
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings 
+from langchain.schema import Document
 
 _template = """Given the following conversation and a follow up question, rephrase the follow up question to be a standalone question.
 You can assume the discussion is about the video content.
@@ -60,12 +62,21 @@ class LlmReasoner():
         pkl_path = os.path.join(self.tmp_dir, f"{video_id}.pkl")
         
         if not os.path.exists(pkl_path):
-            loader = UnstructuredFileLoader(os.path.join(self.data_dir, f"{video_id}.log"))
-            raw_documents = loader.load()
+            log_path = os.path.join(self.data_dir, f"{video_id}.log")
+            with open(log_path, 'r') as f:
+                raw_text = f.read()
+
+            # Split text into smaller sections based on "When"
+            sections = re.split(r'(?=When\s\d{1,2}:\d{2}:\d{2})', raw_text)
+            documents = [
+                Document(page_content=section.strip(), metadata={"source": log_path}, lookup_index=i)
+                for i, section in enumerate(sections) if section.strip()
+            ]
 
             # Split text
-            text_splitter = RecursiveCharacterTextSplitter()
-            documents = text_splitter.split_documents(raw_documents)
+            # text_splitter = RecursiveCharacterTextSplitter()
+            # documents = text_splitter.split_documents(raw_documents)
+
 
             # Load Data to vectorstore
             embeddings = OpenAIEmbeddings()
@@ -91,6 +102,14 @@ class LlmReasoner():
 
     def __call__(self, question):
         print(f"Question: {question}")
+        # Retrieve the documents
+        retrieved_docs = self.vectorstore.similarity_search(question, k=self.top_k)
+        
+        # Print the retrieved sections of the log
+        for i, doc in enumerate(retrieved_docs):
+            print(f"Document {i+1}:")
+            print(doc.page_content)
+            print("\n")
         response = self.qa_chain({"question": question, "chat_history": self.history})["answer"]
         self.history.append((question, response))
         

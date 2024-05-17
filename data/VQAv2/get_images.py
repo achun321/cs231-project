@@ -30,7 +30,7 @@ if 'questions' in questions_data and 'annotations' in annotations_data:
                for entry in questions if entry.get('question', '').lower().startswith("is there")]
 
     # Remove duplicates and limit to 1800 entries
-    unique_entries = list({entry['question_id']: entry for entry in entries}.values())[:1800]
+    unique_entries = list({entry['question_id']: entry for entry in entries}.values())[:600]
 
     # Create a mapping of question_id to correct answers
     question_id_to_answer = {entry['question_id']: entry['multiple_choice_answer'] for entry in annotations}

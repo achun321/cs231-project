@@ -62,13 +62,16 @@ class Vlogger :
             
         logger = logger_creator(video_id)
         clip_features, video_length = self.feature_extractor(video_path, video_id)
+        print(f"Clip features shape: {clip_features.shape}")
         seg_windows = self.video_segmenter(clip_features, video_length)
+        print(f"Segmentation windows: {seg_windows}")
         
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
         # audio_results = self.audio_translator(video_path)
 
         for start_sec, end_sec in seg_windows:
+            print(f"Start: {start_sec}, End: {end_sec}")
             middle_sec = (start_sec + end_sec) // 2
             middle_frame_idx = int(middle_sec * fps)
             cap.set(cv2.CAP_PROP_POS_FRAMES, middle_frame_idx)
