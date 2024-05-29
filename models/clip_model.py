@@ -21,8 +21,11 @@ class FeatureExtractor():
     def __call__(self, video_path, video_id):        
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
+        print("FPS", fps)
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        print("FRAME COUNT", frame_count)
         video_length = frame_count / fps
+        print("VIDEO LEN", video_length)
         sample_rate = int(fps) * self.beta
 
         save_path = os.path.join(self.tmp_dir, video_id + '.npz')
@@ -33,12 +36,13 @@ class FeatureExtractor():
 
         clip_features = []
         print("Extract the clip feature.")
+        frame_idx = 0
         while True:
             ret, frame = cap.read()
             if not ret:
                 break
 
-            if cap.get(cv2.CAP_PROP_POS_FRAMES) % sample_rate == 0:
+            if frame_idx % sample_rate == 0:
                 image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 inputs = self.processor(images=image, return_tensors="pt").pixel_values
                 inputs = inputs.to(self.device)
@@ -46,7 +50,9 @@ class FeatureExtractor():
                 with torch.no_grad():
                     feat = self.model(inputs)['image_embeds']
                     clip_features.append(feat.cpu().numpy())
+                    frame_idx += 1
         print("Finished.")
+        print("FRAME IDX", frame_idx)
 
         clip_features = np.concatenate(clip_features, axis=0)
         np.savez_compressed(save_path, features=clip_features)

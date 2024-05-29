@@ -21,7 +21,7 @@ CONDENSE_QUESTION_PROMPT = PromptTemplate.from_template(_template)
 
 qa_template = """You are an AI assistant designed for answering questions about a video.
 You are given a document and a question, the document records what people see and hear from this video.
-Try to connect these information and provide a conversational answer.
+Try to connect these information and provide a yes/no answer to the question only responding "yes" or "no".
 Question: {question}
 =========
 {context}
@@ -44,6 +44,8 @@ class LlmReasoner():
     def exist_vectorstore(self, video_id):
         pkl_path = os.path.join(self.tmp_dir, f"{video_id}.pkl")
         log_path = os.path.join(self.data_dir, f"{video_id}.log")
+        print("Pkl Path: ", self.tmp_dir)
+        print("Log Path: ", self.data_dir)
         if os.path.exists(pkl_path) and os.path.exists(log_path):
             self.vectorstore = FAISS.load_local(pkl_path, OpenAIEmbeddings())
             # with open(pkl_path, 'rb') as file:
