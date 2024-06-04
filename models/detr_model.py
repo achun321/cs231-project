@@ -1,6 +1,6 @@
 import torch
 from PIL import Image
-from transformers import DetrImageProcessor, DetrForObjectDetection
+from transformers import AutoImageProcessor, DetrForObjectDetection
 
 class ObjectDetector:
     def __init__(self, model_name='facebook/detr-resnet-50', device='gpu'):
@@ -16,10 +16,8 @@ class ObjectDetector:
             self.data_type = torch.float16
         
         # Initialize the DETR model and processor
-        processor = DetrImageProcessor.from_pretrained(self.model_name)
-        model = DetrForObjectDetection.from_pretrained(
-            self.model_name, torch_dtype=self.data_type, low_cpu_mem_usage=True
-        )
+        image_processor = AutoImageProcessor.from_pretrained(self.model_name)
+        model = DetrForObjectDetection.from_pretrained(self.model_name)
         
         # Move model to the specified device
         model.to(self.device)
@@ -28,18 +26,25 @@ class ObjectDetector:
         if self.device != 'cpu':
             model.half()
             
-        return processor, model
+        return image_processor, model
 
     def detect_objects(self, image):
         # Prepare the image
+        image = Image.fromarray(image)
         inputs = self.processor(images=image, return_tensors="pt").to(self.device, self.data_type)
         outputs = self.model(**inputs)
         
-        # Process detection outputs
-        # Note: Adjust the following code to match the specific output format of your DETR model
-        results = [{'scores': output['scores'].detach().cpu().numpy(),
-                    'labels': output['labels'].detach().cpu().numpy(),
-                    'boxes': output['boxes'].detach().cpu().numpy()} for output in outputs]
-        print("DETR RESULTS: ", results)
+        target_sizes = torch.tensor([image.size[::-1]])
+        results = self.processor.post_process_object_detection(outputs, threshold=0.9, target_sizes=target_sizes)[0]
+        detections = []
+        for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
+            if score > 0.3:  # adjust threshold as needed
+                box = [round(i, 2) for i in box.tolist()]
+                detections.append(f"{self.model.config.id2label[label.item()]} ({round(score.item(), 3)}) at {box}")
         
-        return results
+        if detections:
+            detection_summary = f"I detected: {', '.join(detections)}"
+        else:
+            detection_summary = "No significant objects detected."
+        
+        return detection_summary

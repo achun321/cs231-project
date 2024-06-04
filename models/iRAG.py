@@ -8,12 +8,12 @@ from transformers import logging
 logging.set_verbosity_error()
 
 from models.kts_model import VideoSegmentor
-from models.clip_model import FeatureExtractor
+from models.irag_clip_model import FeatureExtractor
 from models.blip2_model import ImageCaptioner
 from models.detr_model import ObjectDetector
 from models.grit_model import DenseCaptioner
 from models.whisper_model import AudioTranslator
-from models.gpt_model import LlmReasoner
+from models.irag_gpt_model import LlmReasoner
 from utils.utils import logger_creator, format_time
 
 
@@ -36,8 +36,8 @@ class iRAG:
         self.feature_extractor = FeatureExtractor(self.args)
         self.video_segmenter = VideoSegmentor(alpha=self.alpha, beta=self.beta)
         self.object_detector = ObjectDetector(model_name=self.args.object_detector, device=self.args.object_detector_device)
-        self.image_captioner = ImageCaptioner(model_name=self.args.captioner_base_model, device=self.args.image_captioner_device)
-        self.dense_captioner = DenseCaptioner(device=self.args.dense_captioner_device)
+        #elf.image_captioner = ImageCaptioner(model_name=self.args.captioner_base_model, device=self.args.image_captioner_device)
+        #self.dense_captioner = DenseCaptioner(device=self.args.dense_captioner_device)
         # self.audio_translator = AudioTranslator(model=self.args.audio_translator, device=self.args.audio_translator_device)
         print('\033[1;32m' + "Model initialization finished!".center(50, '-') + '\033[0m')
     
@@ -82,14 +82,16 @@ class iRAG:
             
             if ret:
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                image_caption = self.image_captioner.image_caption(frame)
-                dense_caption = self.dense_captioner.image_dense_caption(frame)
+                obj_detection_caption = self.object_detector.detect_objects(frame)
+                # image_caption = self.image_captioner.image_caption(frame)
+                # dense_caption = self.dense_captioner.image_dense_caption(frame)
                 # audio_transcript = self.audio_translator.match(audio_results, start_sec, end_sec)
                     
                 logger.info(f"When {format_time(start_sec)} - {format_time(end_sec)}")
-                logger.info(f"I saw {image_caption}.")
-                logger.info(f"I found {dense_caption}.")
-                    
+                #logger.info(f"I saw {image_caption}.")
+                #logger.info(f"I found {dense_caption}.")
+                logger.info(obj_detection_caption)
+
                 # if len(audio_transcript) > 0:
                 #     logger.info(f"I heard someone say \"{audio_transcript}\"")
                 # logger.info("\n")

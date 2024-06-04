@@ -17,7 +17,6 @@ class FeatureExtractor():
         self.data_dir = args.data_dir
         self.tmp_dir = args.tmp_dir
 
-
     def __call__(self, video_path, video_id):        
         cap = cv2.VideoCapture(video_path)
         fps = cap.get(cv2.CAP_PROP_FPS)
@@ -28,15 +27,13 @@ class FeatureExtractor():
         print("VIDEO LEN", video_length)
         sample_rate = int(fps) * self.beta
 
-        save_path = os.path.join(self.tmp_dir, video_id + '.npz')
+        save_path = os.path.join(self.tmp_dir, f"{video_id}_clip_features.npy")
         if os.path.exists(save_path):
-            data = np.load(save_path)
-            clip_features = data['features']    
+            clip_features = np.load(save_path)
             return clip_features, video_length
 
         clip_features = []
         print("Extract the clip feature.")
-        frame_idx = 0
         while True:
             ret, frame = cap.read()
             if not ret:
@@ -50,10 +47,10 @@ class FeatureExtractor():
                 with torch.no_grad():
                     feat = self.model(inputs)['image_embeds']
                     clip_features.append(feat.cpu().numpy())
-                    frame_idx += 1
         print("Finished.")
 
         clip_features = np.concatenate(clip_features, axis=0)
-        np.savez_compressed(save_path, features=clip_features)
+        print("SHAPE: ", clip_features.shape)
+        np.save(save_path, clip_features)
         
         return clip_features, video_length
