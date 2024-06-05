@@ -61,7 +61,7 @@ def resize_and_pad(image, target_height, target_width):
 current_frame = 0
 for key, entry in combined_mapping.items():
     image_path = entry['image_path']
-    duration = random.randint(1, 5)  # random duration between 1 to 5 seconds
+    duration = random.randint(4, 6)  # random duration between 1 to 5 seconds
 
     if not os.path.exists(image_path):
         print(f"Image path does not exist: {image_path}")
