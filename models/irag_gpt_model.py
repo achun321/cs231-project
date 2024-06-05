@@ -12,7 +12,6 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredFileLoader
 from langchain.embeddings import OpenAIEmbeddings 
 from langchain.schema import Document
-from langchain.vectorstores.faiss import FAISS as LangChainFAISS
 from langchain_community.docstore.in_memory import InMemoryDocstore
 
 
@@ -108,30 +107,21 @@ class LlmReasoner():
             #     pickle.dump(vectorstore, f)
         
         self.text_vectorstore = FAISS.load_local(pkl_path, OpenAIEmbeddings())
-        print("TEXT VECTORSTORE TYPE:", type(self.text_vectorstore))
         if os.path.exists(feature_path):
             clip_features = np.load(feature_path)
-            docstore = InMemoryDocstore()
-            index_to_docstore_id = {}
-
-            for i, feature in enumerate(clip_features):
-                doc_id = docstore.add({"video_id": video_id, "frame_index": i})
-                index_to_docstore_id[i] = doc_id
-            # Create a FAISS index for the features if it doesn't exist
             if not os.path.exists(feature_index_path):
-                print("TEST")
                 dim = clip_features.shape[1]
                 clip_index = faiss.IndexFlatL2(dim)
                 clip_index.add(clip_features.astype('float32'))
                 faiss.write_index(clip_index, feature_index_path)
             else:
                 clip_index = faiss.read_index(feature_index_path)
-            
-            self.clip_vectorstore = LangChainFAISS(clip_index, docstore, index_to_docstore_id)
-            print("CLIP VECTORSTORE TYPE:", type(self.clip_vectorstore))
+
+            # If you still need to link features to metadata:
+            metadata = [{"video_id": video_id, "frame_index": i} for i in range(len(clip_features))]
+            self.clip_vectorstore = FAISS(clip_index, metadata=metadata)
         else:
             print(f"No CLIP feature file found for video_id {video_id}. Please check your paths and preprocessing.")
-            return 
 
 
         # with open(pkl_path, 'rb') as file:

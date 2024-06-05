@@ -40,7 +40,7 @@ class ObjectDetector:
         for score, label, box in zip(results["scores"], results["labels"], results["boxes"]):
             if score > 0.3:  # adjust threshold as needed
                 box = [round(i, 2) for i in box.tolist()]
-                detections.append(f"{self.model.config.id2label[label.item()]} ({round(score.item(), 3)}) at {box}")
+                detections.append(f"{self.model.config.id2label[label.item()]}")
         
         if detections:
             detection_summary = f"I detected: {', '.join(detections)}"
