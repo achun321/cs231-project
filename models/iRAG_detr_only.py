@@ -8,16 +8,16 @@ from transformers import logging
 logging.set_verbosity_error()
 
 from models.kts_model import VideoSegmentor
-from models.irag_clip_model import FeatureExtractor
+from models.clip_model import FeatureExtractor
 from models.blip2_model import ImageCaptioner
 from models.detr_model import ObjectDetector
 from models.grit_model import DenseCaptioner
 from models.whisper_model import AudioTranslator
-from models.irag_gpt_model import LlmReasoner
+from models.gpt_model_detr_only import LlmReasoner
 from utils.utils import logger_creator, format_time
 
 
-class iRAG:
+class iRAGDetr:
     def __init__(self, args):
         self.args = args
         self.alpha = args.alpha

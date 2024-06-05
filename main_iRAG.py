@@ -1,9 +1,11 @@
 import argparse
 from models.iRAG import iRAG
+from models.iRAG_detr_only import iRAGDetr
 
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
+    parser.add_argument('--iRAG', default='iRAG', help='Select the iRAG model: iRAG or iRAGDetr')
     parser.add_argument('--video_path', default='examples/travel_in_roman.mp4')
     parser.add_argument('--alpha', default=10, type=int, help='Determine the maximum segment number for KTS algorithm, the larger the value, the fewer segments.')
     parser.add_argument('--beta', default=1, type=int, help='The smallest time gap between successive clips, in seconds.')
@@ -26,8 +28,10 @@ if __name__ == '__main__':
     parser.add_argument('--gpt_version', choices=['gpt-3.5-turbo'], default='gpt-3.5-turbo')
 
     args = parser.parse_args()
-
-    vlogger = iRAG(args)
+    if args.iRAG == 'iRAG':
+        vlogger = iRAG(args)
+    else:
+        vlogger = iRAGDetr(args)
     vlogger.video2log(args.video_path)
 
     print("Let's chat with your video!")
