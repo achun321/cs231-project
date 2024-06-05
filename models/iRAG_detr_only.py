@@ -33,6 +33,7 @@ class iRAGDetr:
         print('\033[1;34m' + "Welcome to the our Vlog toolbox...".center(50, '-') + '\033[0m')
         print('\033[1;33m' + "Initializing models...".center(50, '-') + '\033[0m')
         print('\033[1;31m' + "This may time-consuming, please wait...".center(50, '-') + '\033[0m')
+        print("DETR ONLY")
         self.feature_extractor = FeatureExtractor(self.args)
         self.video_segmenter = VideoSegmentor(alpha=self.alpha, beta=self.beta)
         self.object_detector = ObjectDetector(model_name=self.args.object_detector, device=self.args.object_detector_device)
@@ -104,7 +105,7 @@ class iRAGDetr:
         
     def printlog(self, video_id):
         log_list = []
-        log_path = os.path.join(self.data_dir, video_id + '.log')
+        log_path = os.path.join(self.data_dir, "detr_" + video_id + '.log')
         with open(log_path, 'r') as f:
             for line in f:
                 log_list.append(line.strip())
